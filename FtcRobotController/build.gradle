@@ -23,3 +23,7 @@ android {
 }
 
 apply from: '../build.dependencies.gradle'
+
+import java.nio.file.Paths
+project.buildDir = Paths.get(System.getenv('TEMP'),
+    project.rootProject.name, project.name, 'build')

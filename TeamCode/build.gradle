@@ -19,3 +19,7 @@ dependencies {
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
+
+import java.nio.file.Paths
+project.buildDir = Paths.get(System.getenv('TEMP'),
+    project.rootProject.name, project.name, 'build')
