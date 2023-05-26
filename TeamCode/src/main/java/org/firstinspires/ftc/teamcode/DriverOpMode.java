@@ -67,7 +67,10 @@ public class DriverOpMode extends OpMode {
         wheelBackRight.setDirection(directionRight);
 
 
+        // Signal initialization complete
         telemetry.addData(CAPTION_STATUS, "<font color=green>Ready.</font>");
+        gamepad1.rumbleBlips(1);
+        gamepad2.rumbleBlips(1);
     }
 
     /*
@@ -89,6 +92,10 @@ public class DriverOpMode extends OpMode {
         loops = 0;
 
         telemetry.setMsTransmissionInterval(100);
+
+        // Signal that opmode started
+        gamepad1.rumbleBlips(1);
+        gamepad2.rumbleBlips(1);
     }
 
     private static final double DEAD_ZONE_RADIUS = 0.1;
