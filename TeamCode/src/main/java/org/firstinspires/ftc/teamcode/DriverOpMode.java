@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -102,8 +103,9 @@ public class DriverOpMode extends OpMode {
         final Vec2D stick = new Vec2D(x, -y);
 
         // Normalize and apply dead-zone
-        final double liveZoneMagnitude = getPercentOfRange(
-            stick.getMagnitude(), DEAD_ZONE_RADIUS, 1.0);
+        final double liveZoneMagnitude = Range.scale(stick.getMagnitude(),
+            DEAD_ZONE_RADIUS, 1.0,  // From range
+            0.0, 1.0);  // To range
         stick.changeMagnitude(liveZoneMagnitude);
 
         return stick;
