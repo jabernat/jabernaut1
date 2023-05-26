@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -9,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.List;
+
 
 
 
@@ -16,6 +19,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class DriverOpMode extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
     private long loops = 0;
+
+    private List<LynxModule> hubModules = null;
 
     private DcMotorEx wheelFrontLeft = null;
     private DcMotorEx wheelFrontRight = null;
@@ -37,6 +42,13 @@ public class DriverOpMode extends OpMode {
         telemetry.update();
 
 
+        // Query control hub data in bulk, but require manual cache flushing
+        hubModules = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hubModule : hubModules) {
+            hubModule.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
+
         // Configure drive wheels
         final DcMotorEx.Direction directionLeft = DcMotorSimple.Direction.FORWARD;
         final DcMotorEx.Direction directionRight = DcMotorSimple.Direction.REVERSE;
@@ -52,9 +64,6 @@ public class DriverOpMode extends OpMode {
 
         wheelBackRight = hardwareMap.get(DcMotorEx.class, "WheelBackRight");
         wheelBackRight.setDirection(directionRight);
-
-
-        // TODO: Enable manual polling
 
 
         telemetry.addData(CAPTION_STATUS, "<font color=green>Ready.</font>");
@@ -114,6 +123,12 @@ public class DriverOpMode extends OpMode {
     @Override
     public void loop() {
         telemetry.addData("<strong>Rate</strong>", "<tt>%.1f</tt> Hz", ++loops / runtime.seconds());
+
+
+        // Flush hub sensor caches
+        for (LynxModule hubModule : hubModules) {
+            hubModule.clearBulkCache();
+        }
 
 
         // Sample inputs
