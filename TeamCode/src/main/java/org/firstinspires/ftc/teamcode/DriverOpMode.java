@@ -100,11 +100,6 @@ public class DriverOpMode extends OpMode {
 
     private static final double DEAD_ZONE_RADIUS = 0.1;
     private static final double STICK_LINEAR_TO_MOTORPOWER_POWER = 3.0;
-    private static double getPercentOfRange(final double value, final double min, final double max) {
-        final double rangeSize = max - min;
-        return Math.min(1.0, Math.max(0.0,  // Clamp within [0, 1]
-            (value - min) / rangeSize));
-    }
     private static Vec2D getGamepadStickVector(final float x, final float y)
     {
         final Vec2D stick = new Vec2D(x, -y);
