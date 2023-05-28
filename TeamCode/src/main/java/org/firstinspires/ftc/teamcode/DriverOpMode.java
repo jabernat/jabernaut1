@@ -36,10 +36,10 @@ public class DriverOpMode extends OpMode {
      */
     @Override
     public void init() {
-        final String CAPTION_STATUS = "<strong>Status</strong>";
+        final String CAPTION_STATUS = "<b>Status</b>";
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
         telemetry.setCaptionValueSeparator(": ");
-        telemetry.addData(CAPTION_STATUS, "<em>Initializing…</em>");
+        telemetry.addData(CAPTION_STATUS, "<i>Initializing…</i>");
         telemetry.update();
 
 
@@ -68,7 +68,7 @@ public class DriverOpMode extends OpMode {
 
 
         // Signal initialization complete
-        telemetry.addData(CAPTION_STATUS, "<font color=green>Ready.</font>");
+        telemetry.addData(CAPTION_STATUS, "<i style=\"color: green\">Ready.</i>");
         gamepad1.rumbleBlips(1);
         gamepad2.rumbleBlips(1);
     }
@@ -131,7 +131,7 @@ public class DriverOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        telemetry.addData("<strong>Rate</strong>", "<tt>%.1f</tt> Hz", ++loops / runtime.seconds());
+        telemetry.addData("<b>Rate</b>", "<tt>%.1f</tt> Hz", ++loops / runtime.seconds());
 
 
         // Flush hub sensor caches
@@ -150,9 +150,9 @@ public class DriverOpMode extends OpMode {
 
         final Vec2D driveTranslation = gamepad1StickLeft;
         double driveRotation = gamepad1StickRight.getX();
-        telemetry.addData("<strong>Drive Translation</strong>", "<em>X</em>=<tt>%3.0f</tt>%%, <em>Y</em>=<tt>%3.0f</tt>%%",
+        telemetry.addData("<b>Drive Translation</b>", "<i>X</i>=<tt>%3.0f</tt>%%, <i>Y</i>=<tt>%3.0f</tt>%%",
             driveTranslation.getX() * 100.0, driveTranslation.getY() * 100.0);
-        telemetry.addData("<strong>Drive Rotation</strong>", "<tt>%3.0f</tt>%%",
+        telemetry.addData("<b>Drive Rotation</b>", "<tt>%3.0f</tt>%%",
             driveRotation * 100.0);
 
 
@@ -190,9 +190,9 @@ public class DriverOpMode extends OpMode {
             wheelBackLeft.setPower(powerBackLeft);
             wheelBackRight.setPower(powerBackRight);
 
-            telemetry.addData("<strong>Front</strong>", "<em>Left</em>=<tt>%3.0f</tt>%%, <em>Right</em>=<tt>%3.0f</tt>%%",
+            telemetry.addData("<b>Front</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
                 powerFrontLeft * 100.0, powerFrontRight * 100.0);
-            telemetry.addData("<strong>Back</strong>", "<em>Left</em>=<tt>%3.0f</tt>%%, <em>Right</em>=<tt>%3.0f</tt>%%",
+            telemetry.addData("<b>Back</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
                 powerBackLeft * 100.0, powerBackRight * 100.0);
         }
     }
