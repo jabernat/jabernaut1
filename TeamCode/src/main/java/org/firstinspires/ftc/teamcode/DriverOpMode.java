@@ -19,7 +19,7 @@ import java.util.List;
 @TeleOp(name="Driver OpMode", group="jabernaut1")
 public class DriverOpMode extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private long loops = 0;
+    private long loops = 0L;
 
     private List<LynxModule> hubModules = null;
 
@@ -45,7 +45,7 @@ public class DriverOpMode extends OpMode {
 
         // Query control hub data in bulk, but require manual cache flushing
         hubModules = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hubModule : hubModules) {
+        for (final LynxModule hubModule : hubModules) {
             hubModule.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
@@ -89,7 +89,7 @@ public class DriverOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
-        loops = 0;
+        loops = 0L;
 
         telemetry.setMsTransmissionInterval(100);
 
@@ -135,7 +135,7 @@ public class DriverOpMode extends OpMode {
 
 
         // Flush hub sensor caches
-        for (LynxModule hubModule : hubModules) {
+        for (final LynxModule hubModule : hubModules) {
             hubModule.clearBulkCache();
         }
 
@@ -159,21 +159,18 @@ public class DriverOpMode extends OpMode {
         // Apply drive wheel powers
         {
             // Convert linear stick percent to power for approximately linear velocity
-            {
-                final double magnitude = driveTranslation.getMagnitude();
-                driveTranslation.changeMagnitude(Math.pow(magnitude, STICK_LINEAR_TO_MOTORPOWER_POWER));
+            driveTranslation.changeMagnitude(
+                Math.pow(driveTranslation.getMagnitude(), STICK_LINEAR_TO_MOTORPOWER_POWER));
+            driveRotation = Math.pow(driveRotation, STICK_LINEAR_TO_MOTORPOWER_POWER);
 
-                driveRotation = Math.pow(driveRotation, STICK_LINEAR_TO_MOTORPOWER_POWER);
-            }
-
-
+            // Combine for mechanum wheels
             double powerFrontLeft  = driveTranslation.getY() + driveTranslation.getX() + driveRotation;
             double powerFrontRight = driveTranslation.getY() - driveTranslation.getX() - driveRotation;
             double powerBackLeft   = driveTranslation.getY() - driveTranslation.getX() + driveRotation;
             double powerBackRight  = driveTranslation.getY() + driveTranslation.getX() - driveRotation;
 
             // Normalize to a max of 100% power
-            double powerMax = Math.max(
+            final double powerMax = Math.max(
                 Math.max(Math.abs(powerFrontLeft), Math.abs(powerFrontRight)),
                 Math.max(Math.abs(powerBackLeft), Math.abs(powerBackRight)));
             if (powerMax > 1.0) {
@@ -182,7 +179,6 @@ public class DriverOpMode extends OpMode {
                 powerBackLeft /= powerMax;
                 powerBackRight /= powerMax;
             }
-
 
             // TODO: Use velocity-mode PID/PIDF.
             wheelFrontLeft.setPower(powerFrontLeft);
