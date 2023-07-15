@@ -50,10 +50,10 @@ public class DriverOpMode extends OpMode {
      */
     @Override
     public void init() {
-        final String CAPTION_STATUS = "<b>Status</b>";
+        telemetry.setAutoClear(false);
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
         telemetry.setCaptionValueSeparator(": ");
-        telemetry.addData(CAPTION_STATUS, "<i>Initializing…</i>");
+        telemetry.addLine("<h1>Initialization</h1>");
         telemetry.update();
 
         // Query control hub data in bulk, but require manual cache flushing
@@ -63,13 +63,14 @@ public class DriverOpMode extends OpMode {
         }
 
         // Configure drive wheels
+        telemetry.addLine("• Configuring wheels…");
         wheelFrontLeft  = configureWheel("WheelFrontLeft",  WHEEL_DIRECTION_LEFT);
         wheelFrontRight = configureWheel("WheelFrontRight", WHEEL_DIRECTION_RIGHT);
         wheelBackLeft   = configureWheel("WheelBackLeft",   WHEEL_DIRECTION_LEFT);
         wheelBackRight  = configureWheel("WheelBackRight",  WHEEL_DIRECTION_RIGHT);
 
         // Signal initialization complete
-        telemetry.addData(CAPTION_STATUS, "<i style=\"color: green\">Ready.</i>");
+        telemetry.addLine("• <span style=\"color: green\">Ready.</span>");
         gamepad1.rumbleBlips(1);
         gamepad2.rumbleBlips(1);
     }
@@ -92,6 +93,8 @@ public class DriverOpMode extends OpMode {
         runtime.reset();
         loops = 0L;
 
+        telemetry.clearAll();
+        telemetry.setAutoClear(true);
         telemetry.setMsTransmissionInterval(100);
 
         // Signal that opmode started
@@ -136,13 +139,12 @@ public class DriverOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        telemetry.addData("<b>Rate</b>", "<tt>%.1f</tt> Hz", ++loops / runtime.seconds());
-
-
         // Flush hub sensor caches
         for (final LynxModule hubModule : hubModules) {
             hubModule.clearBulkCache();
         }
+
+        telemetry.addData("<b>Rate</b>", "<tt>%04.0f</tt> Hz", ++loops / runtime.seconds());
 
 
         // Sample inputs
@@ -152,9 +154,10 @@ public class DriverOpMode extends OpMode {
         final Vec2D gamepad2StickLeft = getGamepadStickLeftVector(gamepad2);
         final Vec2D gamepad2StickRight = getGamepadStickRightVector(gamepad2);
 
-
         final Vec2D driveTranslation = gamepad1StickLeft;
         double driveRotation = gamepad1StickRight.getX();
+
+        telemetry.addLine("<h1>Input</h1>");
         telemetry.addData("<b>Drive Translation</b>", "<i>X</i>=<tt>%3.0f</tt>%%, <i>Y</i>=<tt>%3.0f</tt>%%",
             driveTranslation.getX() * 100.0, driveTranslation.getY() * 100.0);
         telemetry.addData("<b>Drive Rotation</b>", "<tt>%3.0f</tt>%%",
@@ -179,9 +182,10 @@ public class DriverOpMode extends OpMode {
             powerBackLeft   /= powerMax;
             powerBackRight  /= powerMax;
         }
-        telemetry.addData("<b>Front</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
+        telemetry.addLine("<h1>Output</h1>");
+        telemetry.addData("<b>Front</b>", "<i>Left</i>=<tt>%+04.0f</tt>%%, <i>Right</i>=<tt>%+04.0f</tt>%%",
             powerFrontLeft * 100.0, powerFrontRight * 100.0);
-        telemetry.addData("<b>Back</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
+        telemetry.addData("<b>Back</b>", "<i>Left</i>=<tt>%+04.0f</tt>%%, <i>Right</i>=<tt>%+04.0f</tt>%%",
             powerBackLeft * 100.0, powerBackRight * 100.0);
 
         final double velocityFrontLeft_counts_per_s  = powerFrontLeft  * SPEED_MAX_COUNTS_PER_s;
