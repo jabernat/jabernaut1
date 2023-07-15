@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -36,6 +37,11 @@ public class DriverOpMode extends OpMode {
     private DcMotorEx configureWheel(final String name, final DcMotorSimple.Direction direction) {
         final DcMotorEx wheel = hardwareMap.get(DcMotorEx.class, name);
         wheel.setDirection(direction);
+
+        // Prepare velocity-based closed-loop
+        //wheel.setVelocityPIDFCoefficients(1.0, 0.0, 0.0, 0.0);
+        wheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         return wheel;
     }
 
@@ -116,6 +122,15 @@ public class DriverOpMode extends OpMode {
         return getGamepadStickVector(gamepad.right_stick_x, gamepad.right_stick_y);
     }
 
+    private static final double COUNTS_PER_MOTOR_REV = 28;  // REV Robotics REV-41-1291: HD Hex Motor No Gearbox
+    private static final double MOTOR_REVS_PER_WHEEL_REV = 3 * 4;  // 3:1 (REV-41-1601) and 4:1 (REV-41-1602)
+    private static final double COUNTS_PER_WHEEL_REV = COUNTS_PER_MOTOR_REV * MOTOR_REVS_PER_WHEEL_REV;
+    private static final double WHEEL_DIAMETER_cm = 7.5;  // REV Robotics REV-45-1655: 75mm Mechanum Wheel Set
+    private static final double WHEEL_CIRCUMFERENCE_cm = WHEEL_DIAMETER_cm * Math.PI;
+    private static final double COUNTS_PER_cm = COUNTS_PER_WHEEL_REV / WHEEL_CIRCUMFERENCE_cm;
+    private static final double SPEED_MAX_cm_PER_s = 150.0;
+    private static final double SPEED_MAX_COUNTS_PER_s = SPEED_MAX_cm_PER_s * COUNTS_PER_cm;
+
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
@@ -147,40 +162,36 @@ public class DriverOpMode extends OpMode {
 
 
         // Apply drive wheel powers
-        {
-            // Convert linear stick percent to power for approximately linear velocity
-            driveTranslation.changeMagnitude(
-                Math.pow(driveTranslation.getMagnitude(), STICK_LINEAR_TO_MOTORPOWER_POWER));
-            driveRotation = Math.pow(driveRotation, STICK_LINEAR_TO_MOTORPOWER_POWER);
 
-            // Combine for mechanum wheels
-            double powerFrontLeft  = driveTranslation.getY() + driveTranslation.getX() + driveRotation;
-            double powerFrontRight = driveTranslation.getY() - driveTranslation.getX() - driveRotation;
-            double powerBackLeft   = driveTranslation.getY() - driveTranslation.getX() + driveRotation;
-            double powerBackRight  = driveTranslation.getY() + driveTranslation.getX() - driveRotation;
+        // Combine for mechanum wheels
+        double powerFrontLeft  = driveTranslation.getY() + driveTranslation.getX() + driveRotation;
+        double powerFrontRight = driveTranslation.getY() - driveTranslation.getX() - driveRotation;
+        double powerBackLeft   = driveTranslation.getY() - driveTranslation.getX() + driveRotation;
+        double powerBackRight  = driveTranslation.getY() + driveTranslation.getX() - driveRotation;
 
-            // Normalize to a max of 100% power
-            final double powerMax = Math.max(
-                Math.max(Math.abs(powerFrontLeft), Math.abs(powerFrontRight)),
-                Math.max(Math.abs(powerBackLeft), Math.abs(powerBackRight)));
-            if (powerMax > 1.0) {
-                powerFrontLeft /= powerMax;
-                powerFrontRight /= powerMax;
-                powerBackLeft /= powerMax;
-                powerBackRight /= powerMax;
-            }
-
-            // TODO: Use velocity-mode PID/PIDF.
-            wheelFrontLeft.setPower(powerFrontLeft);
-            wheelFrontRight.setPower(powerFrontRight);
-            wheelBackLeft.setPower(powerBackLeft);
-            wheelBackRight.setPower(powerBackRight);
-
-            telemetry.addData("<b>Front</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
-                powerFrontLeft * 100.0, powerFrontRight * 100.0);
-            telemetry.addData("<b>Back</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
-                powerBackLeft * 100.0, powerBackRight * 100.0);
+        // Normalize to a max of 100% power
+        final double powerMax = Math.max(
+            Math.max(Math.abs(powerFrontLeft), Math.abs(powerFrontRight)),
+            Math.max(Math.abs(powerBackLeft), Math.abs(powerBackRight)));
+        if (powerMax > 1.0) {
+            powerFrontLeft  /= powerMax;
+            powerFrontRight /= powerMax;
+            powerBackLeft   /= powerMax;
+            powerBackRight  /= powerMax;
         }
+        telemetry.addData("<b>Front</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
+            powerFrontLeft * 100.0, powerFrontRight * 100.0);
+        telemetry.addData("<b>Back</b>", "<i>Left</i>=<tt>%3.0f</tt>%%, <i>Right</i>=<tt>%3.0f</tt>%%",
+            powerBackLeft * 100.0, powerBackRight * 100.0);
+
+        final double velocityFrontLeft_counts_per_s  = powerFrontLeft  * SPEED_MAX_COUNTS_PER_s;
+        final double velocityFrontRight_counts_per_s = powerFrontRight * SPEED_MAX_COUNTS_PER_s;
+        final double velocityBackLeft_counts_per_s   = powerBackLeft   * SPEED_MAX_COUNTS_PER_s;
+        final double velocityBackRight_counts_per_s  = powerBackRight  * SPEED_MAX_COUNTS_PER_s;
+        wheelFrontLeft.setVelocity(velocityFrontLeft_counts_per_s);
+        wheelFrontRight.setVelocity(velocityFrontRight_counts_per_s);
+        wheelBackLeft.setVelocity(velocityBackLeft_counts_per_s);
+        wheelBackRight.setVelocity(velocityBackRight_counts_per_s);
     }
 
     /*
