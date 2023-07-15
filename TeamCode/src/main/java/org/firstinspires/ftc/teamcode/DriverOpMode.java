@@ -31,6 +31,14 @@ public class DriverOpMode extends OpMode {
 
 
 
+    private static final DcMotorEx.Direction WHEEL_DIRECTION_LEFT = DcMotorSimple.Direction.FORWARD;
+    private static final DcMotorEx.Direction WHEEL_DIRECTION_RIGHT = DcMotorSimple.Direction.REVERSE;
+    private DcMotorEx configureWheel(final String name, final DcMotorSimple.Direction direction) {
+        final DcMotorEx wheel = hardwareMap.get(DcMotorEx.class, name);
+        wheel.setDirection(direction);
+        return wheel;
+    }
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -42,30 +50,17 @@ public class DriverOpMode extends OpMode {
         telemetry.addData(CAPTION_STATUS, "<i>Initializing…</i>");
         telemetry.update();
 
-
         // Query control hub data in bulk, but require manual cache flushing
         hubModules = hardwareMap.getAll(LynxModule.class);
         for (final LynxModule hubModule : hubModules) {
             hubModule.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-
         // Configure drive wheels
-        final DcMotorEx.Direction directionLeft = DcMotorSimple.Direction.FORWARD;
-        final DcMotorEx.Direction directionRight = DcMotorSimple.Direction.REVERSE;
-
-        wheelFrontLeft = hardwareMap.get(DcMotorEx.class, "WheelFrontLeft");
-        wheelFrontLeft.setDirection(directionLeft);
-
-        wheelFrontRight = hardwareMap.get(DcMotorEx.class, "WheelFrontRight");
-        wheelFrontRight.setDirection(directionRight);
-
-        wheelBackLeft = hardwareMap.get(DcMotorEx.class, "WheelBackLeft");
-        wheelBackLeft.setDirection(directionLeft);
-
-        wheelBackRight = hardwareMap.get(DcMotorEx.class, "WheelBackRight");
-        wheelBackRight.setDirection(directionRight);
-
+        wheelFrontLeft  = configureWheel("WheelFrontLeft",  WHEEL_DIRECTION_LEFT);
+        wheelFrontRight = configureWheel("WheelFrontRight", WHEEL_DIRECTION_RIGHT);
+        wheelBackLeft   = configureWheel("WheelBackLeft",   WHEEL_DIRECTION_LEFT);
+        wheelBackRight  = configureWheel("WheelBackRight",  WHEEL_DIRECTION_RIGHT);
 
         // Signal initialization complete
         telemetry.addData(CAPTION_STATUS, "<i style=\"color: green\">Ready.</i>");

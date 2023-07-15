@@ -54,11 +54,11 @@ public class Vec2D {
         }
     }
     public Vec2D normalized() {
-        final double length = getMagnitude();
-        if (length == 0.0) {  // Undefined
+        final double magnitude = getMagnitude();
+        if (magnitude == 0.0) {  // Undefined
             return new Vec2D(Double.NaN, Double.NaN);
         } else {
-            return new Vec2D(x / length, y / length);
+            return new Vec2D(x / magnitude, y / magnitude);
         }
     }
 
