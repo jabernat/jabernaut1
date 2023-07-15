@@ -102,18 +102,31 @@ public class DriverOpMode extends OpMode {
         gamepad2.rumbleBlips(1);
     }
 
-    private static final double DEAD_ZONE_RADIUS = 0.1;
-    private static final double STICK_LINEAR_TO_MOTORPOWER_POWER = 3.0;
+    /**
+     * How much stick magnitude to ignore before scaling its output from 0 to 100%.
+     */
+    private static final double DEAD_ZONE_RADIUS = 0.0;
+    /**
+     * Raise stick magnitudes to this power so they increase more slowly near the neutral
+     * position.
+     */
+    private static final double STICK_SENSITIVITY_AMPLIFICATION = 2.0;
     private static Vec2D getGamepadStickVector(final float x, final float y)
     {
         final Vec2D stick = new Vec2D(x, -y);
 
-        // Normalize and apply dead-zone
-        final double liveZoneMagnitude = Range.scale(stick.getMagnitude(),
+        // Clamp to unit circle
+        final double clampedMagnitude = Math.max(0.0, Math.min(1.0, stick.getMagnitude()));
+
+        // Apply dead-zone
+        final double liveZoneMagnitude = Range.scale(clampedMagnitude,
             DEAD_ZONE_RADIUS, 1.0,  // From range
             0.0, 1.0);  // To range
-        stick.changeMagnitude(liveZoneMagnitude);
 
+        // Amplify sensitivity near neutral position
+        final double sensitiveMagnitude = Math.pow(liveZoneMagnitude, STICK_SENSITIVITY_AMPLIFICATION);
+
+        stick.changeMagnitude(sensitiveMagnitude);
         return stick;
     }
     private static Vec2D getGamepadStickLeftVector(final Gamepad gamepad)
