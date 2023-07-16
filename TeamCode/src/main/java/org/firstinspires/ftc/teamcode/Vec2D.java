@@ -101,4 +101,23 @@ public class Vec2D {
     public Vec2D divided(final double coefficient) {
         return new Vec2D(x / coefficient, y / coefficient);
     }
+
+    public void rotate(final double sine, final double cosine) {
+        x = x * cosine - y * sine;
+        y = x * sine + y * cosine;
+    }
+
+    public void rotate(final double radians) {
+        rotate(Math.sin(radians), Math.cos(radians));
+    }
+
+    public Vec2D rotated(final double sine, final double cosine) {
+        return new Vec2D(
+            x * cosine - y * sine,
+            x * sine + y * cosine);
+    }
+
+    public Vec2D rotated(final double radians) {
+        return rotated(Math.sin(radians), Math.cos(radians));
+    }
 }

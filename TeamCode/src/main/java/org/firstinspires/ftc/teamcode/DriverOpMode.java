@@ -7,10 +7,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
@@ -23,6 +25,8 @@ public class DriverOpMode extends OpMode {
     private long loops = 0L;
 
     private List<LynxModule> hubModules = null;
+
+    private IMU imu = null;  // Control Hub's internal IMU
 
     private DcMotorEx wheelFrontLeft = null;
     private DcMotorEx wheelFrontRight = null;
@@ -62,6 +66,8 @@ public class DriverOpMode extends OpMode {
             hubModule.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
+        imu = hardwareMap.get(IMU.class, "imu");
+
         // Configure drive wheels
         telemetry.addLine("• Configuring wheels…");
         wheelFrontLeft  = configureWheel("WheelFrontLeft",  WHEEL_DIRECTION_LEFT);
@@ -96,6 +102,8 @@ public class DriverOpMode extends OpMode {
         telemetry.clearAll();
         telemetry.setAutoClear(true);
         telemetry.setMsTransmissionInterval(100);
+
+        imu.resetYaw();  // Don't use previous op-mode's orientation
 
         // Signal that opmode started
         gamepad1.rumbleBlips(1);
@@ -167,8 +175,9 @@ public class DriverOpMode extends OpMode {
         final Vec2D gamepad2StickLeft = getGamepadStickLeftVector(gamepad2);
         final Vec2D gamepad2StickRight = getGamepadStickRightVector(gamepad2);
 
-        final Vec2D driveTranslation = gamepad1StickLeft;
-        double driveRotation = gamepad1StickRight.getX();
+        final double robotYaw_rad = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        final Vec2D driveTranslation = gamepad1StickLeft.rotated(-robotYaw_rad);
+        final double driveRotation = gamepad1StickRight.getX();
 
         telemetry.addLine("<h1>Input</h1>");
         telemetry.addData("<b>Drive Translation</b>", "<i>X</i>=<tt>%3.0f</tt>%%, <i>Y</i>=<tt>%3.0f</tt>%%",
